@@ -1,3 +1,5 @@
+import hashlib
+
 # Initial hash values to help set the output size.
 # Simply different iterations of counting represented in in little-endian hexadecimal converted to big-endian
 initial_hash_value = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0]
@@ -12,21 +14,19 @@ def SHA1(message):
 
     # Pad the message
     padded_message = Preprocess(message)
+    # print(f'{padded_message=}')
+    # assert len(padded_message) == 512
+
     # Get the number of cycles needed
-    N = (len(padded_message) * 8) / 512
+    N = len(padded_message) // 512
+    #print(f'{N=}')    
 
     for i in range(1, N+1):
         W = []
 
-        # TODO: Reformat this to be readable
-        # Prepare the message Schedule:
-        for t in range(80):
-            if t <= 15:
-                # M_sub-t_exp-i
-                W.extend([ int(padded_message[ (32 * t) : (32 * (t + 1)) ], 2)  ])
-            else:
-                W.extend([ Left_Rotate( W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16], amount=1, bitSize=32) ])
+        W = Prep_Message_Schedule(padded_message, W)
 
+        # print(f'{W=}')
         # Set the five working variables    
         a = H[0]
         b = H[1]
@@ -61,6 +61,7 @@ def SHA1(message):
     
     # Append the H values to form the final result.
     Final_Message = [format(x, '08x') for x in H]
+    return ''.join(Final_Message)
                 
 
 def Left_Rotate(input, amount, bitSize=32):
@@ -124,8 +125,44 @@ def Preprocess(message):
     bit_message = get_binary_list(message)
     # Append a 1, then fill the rest with 0's until mod 512 by appending blocks of 8 zeros.
     bit_message.append('10000000')
-    for i in range(((padding+1)/8)-1):
+    for i in range(((padding+1)//8)-1):
         bit_message.append('00000000')
     # Finally append the length of the message in binary
-    bit_message.append(format(bit_count, '08b'))
-    return bit_message
+    bit_message.append(format(bit_count, '064b'))
+    
+    return ''.join(bit_message)
+
+def Prep_Message_Schedule(input, schedule):
+    for t in range(80):
+        if t <= 15:
+            # M_sub-t_exp-i
+            # Grab blocks of 32 bits and ensure they are in binary and not string
+            # 0->32, 32->64, ... , 448->480, 480->512
+            start = 32 * t
+            end = 32 * (t + 1)
+            sub_block = input[start : end]
+            schedule.extend([ int(sub_block, 2) ])
+        else:
+            # Add a jumbled version of the message onto the message schedule
+            schedule.extend([ Left_Rotate( schedule[t - 3] ^ schedule[t - 8] ^ schedule[t - 14] ^ schedule[t - 16], amount=1, bitSize=32) ])
+
+    return schedule
+
+
+def Main():
+    # myString = 'Chocolate Cake is a delicious food and is super amazing but Carrot cake is better.'
+    myString = 'abc'
+    print(f'String to encode: {myString}\n\nImplementation:\n')    
+    mySHA1 = SHA1(myString)
+    print(mySHA1)
+    print('\nLibrary Implementation:\n')
+    libSHA1 = hashlib.sha1()
+    libSHA1.update(myString.encode("ASCII"))
+    print(libSHA1.hexdigest())
+    
+    if (mySHA1 == libSHA1.hexdigest()):
+        print("They match!")
+
+
+if __name__ == "__main__":
+    Main()
