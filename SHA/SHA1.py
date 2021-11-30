@@ -7,6 +7,7 @@ initial_hash_value = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0
 
 def SHA1(message): 
     # Implementation based on NIST.FIPS.180-4
+    # https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
 
     # Get the K values
     K = Fill_Constants()
