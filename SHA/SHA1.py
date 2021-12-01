@@ -7,7 +7,6 @@ initial_hash_value = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0
 
 def SHA1(message): 
     # Implementation based on NIST.FIPS.180-4
-    # https://nvlpubs.nist.gov/nistpubs/FIPS/NIST.FIPS.180-4.pdf
 
     # Get the K values
     K = Fill_Constants()
@@ -126,7 +125,7 @@ def Preprocess(message):
     bit_message = get_binary_list(message)
     # Append a 1, then fill the rest with 0's until mod 512 by appending blocks of 8 zeros.
     bit_message.append('10000000')
-    for i in range(((padding+1)//8)-1):
+    for i in range(((padding+1) // 8) - 1):
         bit_message.append('00000000')
     # Finally append the length of the message in binary
     bit_message.append(format(bit_count, '064b'))
@@ -145,7 +144,8 @@ def Prep_Message_Schedule(input, schedule):
             schedule.extend([ int(sub_block, 2) ])
         else:
             # Add a jumbled version of the message onto the message schedule
-            schedule.extend([ Left_Rotate( schedule[t - 3] ^ schedule[t - 8] ^ schedule[t - 14] ^ schedule[t - 16], amount=1, bitSize=32) ])
+            xor_chunk = schedule[t - 3] ^ schedule[t - 8] ^ schedule[t - 14] ^ schedule[t - 16]
+            schedule.extend([ Left_Rotate( xor_chunk, amount=1, bitSize=32) ])
 
     return schedule
 
