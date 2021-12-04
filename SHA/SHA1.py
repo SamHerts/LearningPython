@@ -10,36 +10,24 @@ debug = False
 def SHA1(message): 
     # Implementation based on NIST.FIPS.180-4
 
-    if (debug): print("Starting SHA1 Function")
-
     # Get the initial values
     K = Fill_Constants()
     H = initial_hash_value
 
     # Pad the message to be multiples of 512 bits
     padded_message = Preprocess(message)
-    if (debug): print(f'{padded_message=}')
-    if (debug): print(f'{len(padded_message)=}')
 
     # Get the number of cycles needed
-    N = len(padded_message) // 512
-    if (debug): print(f'{N=}')    
+    N = len(padded_message) // 512  
 
     for i in range(1, N+1):
-        if (debug): print(f'{i=}')
         W = []
-
+        
         # Prep only the portion of the message we are working on, in blocks of 512
         W = Prep_Message_Schedule(padded_message[512*(i-1):512*i], W)
-        if (debug): print(f'W={[hex(x) for x in W]}')
         
-        # Set the five working variables
-        if (debug): print(f'{H=}')    
-        a = H[0]
-        b = H[1]
-        c = H[2]
-        d = H[3]
-        e = H[4]
+        # Set the five working variables   
+        a,b,c,d,e = H
 
         # Use a different function for each t values using function assignment to match NIST style
         for t in range(80):
@@ -58,16 +46,13 @@ def SHA1(message):
             c = Left_Rotate(b, amount=30, bitSize=32)
             b = a
             a = T
-            if (debug): print(f'{t=},a={hex(a)},b={hex(b)},c={hex(c)},d={hex(d)},e={hex(e)}')
-
+            
         # Compute the ith intermediate hash value 
         H[0] = (a + H[0]) % (2 ** 32)
         H[1] = (b + H[1]) % (2 ** 32)
         H[2] = (c + H[2]) % (2 ** 32)
         H[3] = (d + H[3]) % (2 ** 32)
         H[4] = (e + H[4]) % (2 ** 32)
-
-        if (debug): print(f'H={[hex(x) for x in H]}')
     
     # Append the H values to form the final result.
     Final_Message = [format(x, '08x') for x in H]
@@ -102,7 +87,6 @@ def Majority(x, y, z):
 
 def Fill_Constants():
     # Initial Values are based on Binary Square roots
-    if (debug): print("Starting Fill_Constants Function")
     K = [None]*80
     for t in range(80):
         if t <= 19:
@@ -121,44 +105,27 @@ def Fill_Constants():
 
 def Get_Bit_Count(message:str):
     # Gets the total number of bits in a string assuming 8 bits per byte, with one byte per letter
-    if (debug): print("Starting Get_Bit_Count Function")
     return len(message.encode('ascii')) * 8
 
 def get_binary_list(message:str)-> list:
-    if (debug): print("Starting get_binary_list Function")
     # convert the string to ascii bytes
     m_bytes = message.encode('ascii')
     # format the bytes into bits
     return [format(x, '08b') for x in m_bytes]
 
 def Preprocess(message):
-    if (debug): print("Starting Preprocess Function")
     # First pad the message to a length of a multiple of 512 bits
     bit_count = Get_Bit_Count(message)
-    if (debug): print(f'{bit_count=}')
     
     padding = (447 - bit_count) % 512
-    if (debug): print(f'{padding=}')
-    
-
     bit_message = get_binary_list(message)
-    if (debug): print(f'{bit_message=}')
-
-    # Append a 1, then fill the rest with 0's until mod 512 by appending blocks of 8 zeros.
-    
-    if (debug): print("Appending 1")
-    bit_message.append('1')
-
-    if (debug): print(f"Appending {'0'*padding}")       
-    bit_message.append('0'*padding)
-
+    # Append a 1, then fill the rest with 0's until mod 512 by appending blocks of 8 zeros.     
+    bit_message.append('1' + '0'*padding)
     # Finally append the length of the message in binary
-    bit_message.append(format(bit_count, '064b'))
-    
+    bit_message.append(format(bit_count, '064b'))    
     return ''.join(bit_message)
 
 def Prep_Message_Schedule(input, schedule):
-    if (debug): print("Starting Prep_Message_Schedule Function")
     for t in range(80):
         if t <= 15:
             # M_sub-t_exp-i
@@ -175,12 +142,9 @@ def Prep_Message_Schedule(input, schedule):
 
     return schedule
 
-
 def Main():
     myString = 'abcdbcdecdefdefgefghfghighijhijkijkljklmklmnlmnomnopnopq'
-    #if (debug): 
-    print(f'{len(myString)=}')
-    
+   
     print(f'String to encode: {myString}\n\nImplementation:\n')    
     mySHA1 = SHA1(myString)
     print(mySHA1)
