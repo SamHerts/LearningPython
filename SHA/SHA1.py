@@ -23,8 +23,10 @@ def SHA1(message):
     for i in range(1, N+1):
         W = []
         
+        start = 512*(i-1)
+        end = 512*i
         # Prep only the portion of the message we are working on, in blocks of 512
-        W = Prep_Message_Schedule(padded_message[512*(i-1):512*i], W)
+        W = Prep_Message_Schedule(padded_message[start : end], W)
         
         # Set the five working variables   
         a,b,c,d,e = H
