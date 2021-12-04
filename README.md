@@ -1,2 +1,1 @@
-# PythonLearn
-Simple Programs from learning Python
+Projects for learning Python
