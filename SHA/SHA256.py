@@ -1,26 +1,12 @@
 from hashlib import sha256 # For verifying the accuracy.
 
-# Initial hash values to help seed the output.
-
-# These words were obtained by taking the first thirty-two bits of the fractional parts of the square roots of the first eight prime numbers.
-H_constants = [0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a, 0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19]
-
-# These words were obtained by taking the first thirty-two bits of the fractional parts of the cube roots of the first sixty-four prime numbers
-K_constants = [0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
-0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
-0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
-0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
-0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
-0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
-0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
-0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2]
-
 def SHA256(message): 
     # Implementation based on NIST.FIPS.180-4
 
-    # Get the initial values
-    K = K_constants
-    H = H_constants
+    # Get the initial values so there is relatively even distribution of 1s and 0s to begin with
+    # These are 'Nothing up our sleeves' values
+    K = get_constants(3, 64)
+    H = get_constants(2, 8)
 
     # Pad the message to be multiples of 512 bits
     padded_message = Preprocess(message)    
@@ -157,6 +143,38 @@ def Prep_Message_Schedule(input, schedule):
             schedule.append(chunk)
     return schedule
 
+def get_K_constants():
+    # Calculate the K values by taking the first thirty-two bits
+    # of the fractional parts of the cube roots of the first sixty-four prime numbers
+    return [int('0x' + (x**(1/3) % 1+1).hex()[4:12],16) for x in get_first_n_primes(64)] 
+
+def get_constants(root, primes):
+    # Calculate constants by taking the first thirty-two bits 
+    # of the fractional parts of the roots of the first n prime numbers.
+    return [int('0x' + (x**(1/root) % 1+1).hex()[4:12],16) for x in get_first_n_primes(primes)]
+
+def get_first_n_primes(n):
+    # This probably doesn't work for values greatly above 64
+    Prime_Mask = Sieve(n**2)
+    return [x*Prime_Mask[x] for x in range(n**2) if Prime_Mask[x]][:n] 
+
+def Sieve(n):     
+    # Create a boolean array "prime[0..n]" and initialize
+    # all entries it as true. A value in prime[i] will
+    # finally be false if i is Not a prime, else true.
+    # n = 312 will get the first 64 primes
+    prime = [True for i in range(n + 1)]
+    p = 2
+    while (p * p <= n):         
+        # If prime[p] is not changed, then it is a prime
+        if prime[p]:             
+            # Update all multiples of p
+            for i in range(p ** 2, n + 1, p):
+                prime[i] = False
+        p += 1
+    prime[0]= False
+    prime[1]= False
+    return prime
 
 def Main():
     #myString = 'abc'
