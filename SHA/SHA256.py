@@ -14,7 +14,8 @@ def SHA256(message):
     # Get the number of cycles needed
     N = len(padded_message) // 512     
 
-    for i in range(1, N+1):        
+    for i in range(1, N+1):  
+        #Start with an empty schedule      
         W = []
 
         # Prep only the portion of the message we are working on, in blocks of 512
@@ -106,19 +107,14 @@ def Get_Bit_Count(message:str):
     # Gets the total number of bits in a string assuming 8 bits per byte, with one byte per letter
     return len(message.encode('ascii')) * 8
 
-def get_binary_list(message:str)-> list:
-    # convert the string to ascii bytes
-    m_bytes = message.encode('ascii')
-    # format the bytes into bits
-    return [format(x, '08b') for x in m_bytes]
-
 def Preprocess(message):
     # First pad the message to a length of a multiple of 512 bits
     bit_count = Get_Bit_Count(message)
         
     padding = (447 - bit_count) % 512
         
-    bit_message = get_binary_list(message)    
+    # Convert the message into bits
+    bit_message = [format(x, '08b') for x in message.encode('ascii')]    
     # Append a 1, then fill the rest with 0's until mod 512 by appending blocks of 8 zeros.          
     bit_message.append('1' + '0' * padding)
     # Finally append the length of the message in binary
